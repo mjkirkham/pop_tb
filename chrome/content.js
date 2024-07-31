@@ -74,7 +74,7 @@ function creditOrDebit(postingType) {
 
 function checkNotBF(inputRow) {
   let account_name = inputRow.querySelector('span.nominal_account_name').innerText;
-  return !account_name.toLowerCase().includes('brought forward');
+  return !account_name.toLowerCase().includes('brought forward') && !account_name.toLowerCase().includes('prior period adjustments') && !account_name.toLowerCase().includes('effects of changes in accounting policies');
 }
 
 function shuffleArray(array) {
