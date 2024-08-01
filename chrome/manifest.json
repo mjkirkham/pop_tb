@@ -1,23 +1,30 @@
 {
-  "manifest_version": 2,
+  "manifest_version": 3,
 
   "name": "Pop TB",
   "description": "Fully populate an Initial or Comparative Trial Balance in Final Accounts Online.",
-  "version": "0.5",
+  "version": "1.0",
   "author": "Charlie Billen, Mark Kirkham",
 
-  "icons": { "16": "hypnotoad16.png",
+  "icons": {
+    "16": "hypnotoad16.png",
     "48": "hypnotoad48.png",
-    "128": "hypnotoad128.png" },
+    "128": "hypnotoad128.png"
+  },
 
-  "page_action": {
+  "action": {
     "default_title": "Fully populate a TB",
     "default_icon": "hypnotoad.png",
     "default_popup": "popup.html"
   },
   "permissions": [
-    "declarativeContent"
+    "declarativeContent",
+    "activeTab",
+    "scripting"
   ],
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'self'"
+  },
   "content_scripts": [
     {
       "matches": [
@@ -29,10 +36,7 @@
     }
   ],
   "background": {
-    "scripts": [
-      "background.js"
-    ],
-    "persistent": false
+    "service_worker": "background.js"
   },
   "incognito": "split"
 }

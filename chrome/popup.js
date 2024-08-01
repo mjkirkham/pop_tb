@@ -14,24 +14,27 @@ window.onload = function () {
   });
 
   btnPopTB.addEventListener('click', function () {
-    chrome.tabs.getSelected(null, function (tab) {
+    chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
+      const tab = tabs[0];
       const postingType = document.querySelector('input[name="postingType"]:checked').value,
         includeBF = document.getElementById("chkIncludeBF").checked,
         minValue = document.getElementById("numMinValue").value,
         maxValue = document.getElementById("numMaxValue").value,
         density = document.getElementById("rngDensity").value;
 
-      const params = {"postingType": postingType, "includeBF": includeBF, "minValue": minValue, "maxValue": maxValue, "density": density};
+      const params = { "postingType": postingType, "includeBF": includeBF, "minValue": minValue, "maxValue": maxValue, "density": density };
 
-      chrome.tabs.sendMessage(tab.id, {action: "populateTB", params: params}, function () {
+      chrome.tabs.sendMessage(tab.id, { action: "populateTB", params: params }, function () {
         window.close();
       });
     });
   });
 
   btnClearTB.addEventListener('click', function () {
-    chrome.tabs.getSelected(null, function (tab) {
-      chrome.tabs.sendMessage(tab.id, {action: "clearTB"}, function () {
+    chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
+      const tab = tabs[0];
+      chrome.tabs.sendMessage(tab.id, { action: "clearTB" }, function () {
+        window.close();
       });
     });
   });
@@ -44,41 +47,52 @@ window.onload = function () {
 
     const errorPanel = document.getElementById("errorPanel");
     const minValueInput = document.getElementById('numMinValue');
-    const minValue = parseInt(minValueInput.value);
     const maxValueInput = document.getElementById('numMaxValue');
+    const minValue = parseInt(minValueInput.value);
     const maxValue = parseInt(maxValueInput.value);
     const btnPopTB = document.getElementById("btn_pop_tb_run");
     const msgArray = [];
 
-    //reset error state
+    // Reset error state
     removeErrorState(minValueInput);
     removeErrorState(maxValueInput);
 
+    // Validation rules
+    const validationRules = [
+      {
+        condition: maxValue < minValue,
+        message: "Maximum value cannot be less than the minimum value.",
+        element: maxValueInput
+      },
+      {
+        condition: minValue > parseInt(minValueInput.max),
+        message: `Minimum value cannot be greater than ${minValueInput.max}.`,
+        element: minValueInput
+      },
+      {
+        condition: minValue < parseInt(minValueInput.min),
+        message: `Minimum value cannot be less than ${minValueInput.min}.`,
+        element: minValueInput
+      },
+      {
+        condition: maxValue > parseInt(maxValueInput.max),
+        message: `Maximum value cannot be greater than ${maxValueInput.max}.`,
+        element: maxValueInput
+      },
+      {
+        condition: maxValue < parseInt(maxValueInput.min),
+        message: `Maximum value cannot be less than ${maxValueInput.min}.`,
+        element: maxValueInput
+      }
+    ];
+
     // Validate the form
-    if (maxValue < minValue) {
-      msgArray.push("Maximum value cannot be less than the minimum value.");
-      addErrorState(maxValueInput);
-    }
-
-    if (minValue > parseInt(minValueInput.max)) {
-      msgArray.push("Minimum value cannot be greater than " + minValueInput.max + ".");
-      addErrorState(minValueInput);
-    }
-
-    if (minValue < parseInt(minValueInput.min)) {
-      msgArray.push("Minimum value cannot be less than " + minValueInput.min + ".");
-      addErrorState(minValueInput);
-    }
-
-    if (maxValue > parseInt(maxValueInput.max)) {
-      msgArray.push("Maximum value cannot be greater than " + maxValueInput.max + ".");
-      addErrorState(maxValueInput);
-    }
-
-    if (maxValue < parseInt(maxValueInput.min)) {
-      msgArray.push("Maximum value cannot be less than " + maxValueInput.min + ".");
-      addErrorState(maxValueInput);
-    }
+    validationRules.forEach(rule => {
+      if (rule.condition) {
+        msgArray.push(rule.message);
+        addErrorState(rule.element);
+      }
+    });
 
     btnPopTB.disabled = msgArray.length > 0;
     errorPanel.innerHTML = bullet(msgArray);
@@ -109,10 +123,7 @@ window.onload = function () {
       return '';
     }
 
-    let i, msgString = "<ul>";
-    for (i = 0; i < msgArray.length; i++) {
-      msgString += "<li>" + msgArray[i] + "</li>";
-    }
-    return "<div class='error-icon-container'><span class='error-icon'></span></div><span class='error-content'>" + msgString + "</ul></span>";
+    const msgString = msgArray.map(msg => `<li>${msg}</li>`).join('');
+    return `<div class='error-icon-container'><span class='error-icon'></span></div><span class='error-content'><ul>${msgString}</ul></span>`;
   }
 };
