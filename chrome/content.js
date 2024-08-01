@@ -1,80 +1,102 @@
-chrome.extension.onMessage.addListener(function (request, sender, sendResponse) {
+chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
   if (request.action === "populateTB") {
     clear();
     populateTrialBalance(request.params);
-  }
-  if (request.action === "clearTB") {
+    sendResponse({status: "success"});
+  } else if (request.action === "clearTB") {
     clear();
+    sendResponse({status: "success"});
+  } else {
+    sendResponse({status: "unknown action"});
   }
+  // Return true to indicate you want to send a response asynchronously
+  return true;
 });
 
 function populateTrialBalance(params) {
-  const includeBF = params.includeBF,
-    minValue = params.minValue,
-    maxValue = params.maxValue,
-    postingType = params.postingType,
-    density = parseInt(params.density),
-    range = maxValue - minValue + 1,
-    event = new Event('change', {'bubbles': true});
+  const {
+    includeBF,
+    minValue,
+    maxValue,
+    postingType,
+    density
+  } = params;
+  const parsedDensity = parseInt(density);
+  const range = maxValue - minValue + 1;
+  const event = new Event('change', { 'bubbles': true });
 
-  let postTo = 'debit',
-    total = 0,
-    value = 0;
-
-  let inputRows = [].slice.call(document.querySelectorAll('tr.odd, tr.even'));
+  let total = 0;
+  let inputRows = Array.from(document.querySelectorAll('tr.odd, tr.even'));
   const lastInputRow = inputRows.pop();
-
-  let inputField;
 
   if (!includeBF) {
     inputRows = inputRows.filter(checkNotBF);
   }
 
-  if (density < 100) {
+  if (parsedDensity < 100) {
     shuffleArray(inputRows);
-    let rowsToFill = Math.floor(inputRows.length * (density / 100));
+    const rowsToFill = Math.floor(inputRows.length * (parsedDensity / 100));
     inputRows = inputRows.slice(0, rowsToFill);
   }
 
-  inputRows.forEach(function (inputRow) {
-    postTo = creditOrDebit(postingType);
-    value = Math.floor(Math.random() * range) + parseInt(minValue);
-    inputField = inputRow.querySelector('input[name*=' + postTo + ']');
-    (postTo === 'debit') ? total += value : total -= value;
-    inputField.value = value;
+  inputRows.forEach(inputRow => {
+    const postTo = creditOrDebit(postingType);
+    const value = Math.floor(Math.random() * range) + parseInt(minValue);
+    const inputField = inputRow.querySelector(`input[name*=${postTo}]`);
+    if (inputField) {
+      inputField.value = value;
+      if (postTo === 'debit') {
+        total += value;
+      } else {
+        total -= value;
+      }
+    }
   });
 
-  postTo = (total <= 0) ? 'debit' : 'credit';
-  inputField = lastInputRow.querySelector('input[name*=' + postTo + ']');
-  inputField.value = Math.abs(total);
-  inputField.dispatchEvent(event);
+  const finalPostTo = (total <= 0) ? 'debit' : 'credit';
+  const finalInputField = lastInputRow.querySelector(`input[name*=${finalPostTo}]`);
+  if (finalInputField) {
+    finalInputField.value = Math.abs(total);
+    finalInputField.dispatchEvent(event);
+  }
 
-  document.querySelector('button.save').focus();
+  const saveButton = document.querySelector('button.save');
+  if (saveButton) {
+    saveButton.focus();
+  }
 }
 
 function clear() {
-  const event = new Event('change', {'bubbles': true}),
-    inputRows = document.querySelectorAll('tr.odd, tr.even');
-  for (let i = 0; i < inputRows.length; i++) {
-    inputRows[i].querySelector('input[name*=credit]').value = '';
-    inputRows[i].querySelector('input[name*=debit]').value = '';
-  }
-  inputRows[0].querySelector('input[name*=credit]').dispatchEvent(event);
+  const event = new Event('change', { 'bubbles': true });
+  const inputRows = document.querySelectorAll('tr.odd, tr.even');
+
+  inputRows.forEach(row => {
+    const creditInput = row.querySelector('input[name*=credit]');
+    const debitInput = row.querySelector('input[name*=debit]');
+
+    if (creditInput) creditInput.value = '';
+    if (debitInput) debitInput.value = '';
+  });
+
+  const firstCreditInput = inputRows[0].querySelector('input[name*=credit]');
+  if (firstCreditInput) firstCreditInput.dispatchEvent(event);
 }
 
 function creditOrDebit(postingType) {
-  if (postingType === "creditOnly") {
-    return 'credit';
-  }
-  if (postingType === "debitOnly") {
-    return 'debit';
-  }
-  return (Math.floor(Math.random() * 2) === 0) ? 'credit' : 'debit';
+  const postingTypes = {
+    "creditOnly": 'credit',
+    "debitOnly": 'debit'
+  };
+
+  return postingTypes[postingType] || (Math.floor(Math.random() * 2) === 0 ? 'credit' : 'debit');
 }
 
 function checkNotBF(inputRow) {
-  let account_name = inputRow.querySelector('span.nominal_account_name').innerText;
-  return !account_name.toLowerCase().includes('brought forward') && !account_name.toLowerCase().includes('prior period adjustments') && !account_name.toLowerCase().includes('effects of changes in accounting policies');
+  const account_name = inputRow.querySelector('span.nominal_account_name').innerText;
+  const excludedTerms = /(brought forward|prior period adjustments|effects of changes in accounting policies)/i;
+
+  // Check if the account name contains any of the excluded terms
+  return !excludedTerms.test(account_name);
 }
 
 function shuffleArray(array) {
