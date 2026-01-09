@@ -1,20 +1,7 @@
-chrome.runtime.onInstalled.addListener(function () {
-  chrome.action.disable();
+// Chrome background service worker
+// The action is always enabled, allowing users to open the popup on any page.
+// The popup will detect if it's on a valid Trial Balance page and show appropriate UI.
 
-  chrome.tabs.onUpdated.addListener(function (tabId, changeInfo, tab) {
-    if (changeInfo.status === 'complete' && tab.url) {
-      chrome.scripting.executeScript({
-        target: { tabId: tabId },
-        func: () => {
-          return document.querySelector('form.UIForm.trial-balance') !== null;
-        }
-      }, (results) => {
-        if (results && results[0].result) {
-          chrome.action.enable(tabId);
-        } else {
-          chrome.action.disable(tabId);
-        }
-      });
-    }
-  });
+chrome.runtime.onInstalled.addListener(function () {
+  // Extension installed - no action needed
 });

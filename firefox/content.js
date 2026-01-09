@@ -1,11 +1,11 @@
-chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
+browser.runtime.onMessage.addListener(function (request, sender, sendResponse) {
   if (request.action === "populateTB") {
     try {
       clear();
       const result = populateTrialBalance(request.params);
-      sendResponse({ status: "success", ...result });
+      return Promise.resolve({ status: "success", ...result });
     } catch (error) {
-      sendResponse({ 
+      return Promise.resolve({ 
         status: "error", 
         errorType: "populate_failed",
         message: error.message || "Failed to populate the trial balance."
@@ -14,19 +14,17 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
   } else if (request.action === "clearTB") {
     try {
       clear();
-      sendResponse({ status: "success" });
+      return Promise.resolve({ status: "success" });
     } catch (error) {
-      sendResponse({ 
+      return Promise.resolve({ 
         status: "error", 
         errorType: "clear_failed",
         message: error.message || "Failed to clear the trial balance."
       });
     }
   } else {
-    sendResponse({ status: "error", errorType: "unknown_action", message: "Unknown action requested." });
+    return Promise.resolve({ status: "error", errorType: "unknown_action", message: "Unknown action requested." });
   }
-  // Return true to indicate you want to send a response asynchronously
-  return true;
 });
 
 function populateTrialBalance(params) {
