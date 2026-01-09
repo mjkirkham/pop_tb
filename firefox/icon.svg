@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+  <defs>
+    <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#667eea"/>
+      <stop offset="100%" style="stop-color:#764ba2"/>
+    </linearGradient>
+  </defs>
+  
+  <!-- Background rounded square -->
+  <rect x="4" y="4" width="120" height="120" rx="24" ry="24" fill="url(#bgGradient)"/>
+  
+  <!-- Balance scale - bold and simple -->
+  <!-- Center pillar -->
+  <rect x="58" y="50" width="12" height="54" rx="3" fill="white"/>
+  
+  <!-- Base -->
+  <rect x="38" y="96" width="52" height="10" rx="5" fill="white"/>
+  
+  <!-- Top beam -->
+  <rect x="20" y="40" width="88" height="10" rx="5" fill="white"/>
+  
+  <!-- Left pan -->
+  <circle cx="32" cy="70" r="18" fill="white"/>
+  <rect x="29" y="48" width="6" height="22" rx="2" fill="white"/>
+  
+  <!-- Right pan -->
+  <circle cx="96" cy="70" r="18" fill="white"/>
+  <rect x="93" y="48" width="6" height="22" rx="2" fill="white"/>
+  
+  <!-- Checkmark on left pan (filled/complete) -->
+  <path d="M24 70 L30 76 L40 62" stroke="#667eea" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  
+  <!-- Checkmark on right pan -->
+  <path d="M88 70 L94 76 L104 62" stroke="#764ba2" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+</svg>

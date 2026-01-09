@@ -31,10 +31,12 @@ window.onload = function () {
   }
 
   function loadTheme() {
-    if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local) {
-      chrome.storage.local.get('theme', (result) => {
+    if (typeof browser !== 'undefined' && browser.storage && browser.storage.local) {
+      browser.storage.local.get('theme').then((result) => {
         const theme = result.theme || 'auto';
         applyTheme(theme);
+      }).catch(() => {
+        applyTheme('auto');
       });
     } else {
       applyTheme('auto');
@@ -42,8 +44,8 @@ window.onload = function () {
   }
 
   function saveTheme(theme) {
-    if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local) {
-      chrome.storage.local.set({ theme: theme });
+    if (typeof browser !== 'undefined' && browser.storage && browser.storage.local) {
+      browser.storage.local.set({ theme: theme });
     }
   }
 
@@ -90,10 +92,12 @@ window.onload = function () {
   };
 
   // Load saved preferences
-  if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local) {
-    chrome.storage.local.get('preferences', (result) => {
+  if (typeof browser !== 'undefined' && browser.storage && browser.storage.local) {
+    browser.storage.local.get('preferences').then((result) => {
       const prefs = result.preferences || defaultPrefs;
       applyPreferences(prefs);
+    }).catch(() => {
+      applyPreferences(defaultPrefs);
     });
   } else {
     // Storage not available, use defaults
@@ -119,7 +123,7 @@ window.onload = function () {
   }
 
   function savePreferences() {
-    if (typeof chrome === 'undefined' || !chrome.storage || !chrome.storage.local) return;
+    if (typeof browser === 'undefined' || !browser.storage || !browser.storage.local) return;
     
     const prefs = {
       postingType: document.querySelector('input[name="postingType"]:checked').value,
@@ -128,30 +132,19 @@ window.onload = function () {
       maxValue: document.getElementById("numMaxValue").value,
       density: document.getElementById("rngDensity").value
     };
-    chrome.storage.local.set({ preferences: prefs });
+    browser.storage.local.set({ preferences: prefs });
   }
 
   // Save preferences when any input changes
   form.addEventListener('change', savePreferences);
 
   // Check if we're on a Trial Balance page
-  chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
+  browser.tabs.query({ active: true, currentWindow: true }).then(function (tabs) {
     const tab = tabs[0];
-    if (!tab || !tab.id) {
-      mainContent.style.display = "none";
-      notAvailableMessage.style.display = "flex";
-      return;
-    }
-    chrome.scripting.executeScript({
+    browser.scripting.executeScript({
       target: { tabId: tab.id },
       func: () => document.querySelector('form.UIForm.trial-balance') !== null
-    }, (results) => {
-      // Must check lastError first to suppress the console error
-      if (chrome.runtime.lastError) {
-        mainContent.style.display = "none";
-        notAvailableMessage.style.display = "flex";
-        return;
-      }
+    }).then((results) => {
       if (results && results[0] && results[0].result) {
         // On a valid Trial Balance page - show the main UI
         mainContent.style.display = "block";
@@ -161,6 +154,10 @@ window.onload = function () {
         mainContent.style.display = "none";
         notAvailableMessage.style.display = "flex";
       }
+    }).catch((error) => {
+      // Script execution failed (e.g., restricted page) - show the message
+      mainContent.style.display = "none";
+      notAvailableMessage.style.display = "flex";
     });
   });
 
@@ -218,14 +215,8 @@ window.onload = function () {
     }, duration);
   }
 
-  function handleResponse(response, successMessage, action, hasError) {
+  function handleResponse(response, successMessage, action) {
     setLoadingState(false);
-    
-    // If there was a runtime error, show connection error
-    if (hasError) {
-      showContentError("Could not connect to the page. Please refresh the page and try again.");
-      return;
-    }
     
     if (!response) {
       showContentError("Unable to communicate with the page. Please refresh and try again.");
@@ -255,7 +246,7 @@ window.onload = function () {
     setLoadingState(true);
     showContentError('', false); // Clear any previous errors
 
-    chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
+    browser.tabs.query({ active: true, currentWindow: true }).then(function (tabs) {
       const tab = tabs[0];
       const postingType = document.querySelector('input[name="postingType"]:checked').value,
         includeBF = document.getElementById("chkIncludeBF").checked,
@@ -265,11 +256,15 @@ window.onload = function () {
 
       const params = { "postingType": postingType, "includeBF": includeBF, "minValue": minValue, "maxValue": maxValue, "density": density };
 
-      chrome.tabs.sendMessage(tab.id, { action: "populateTB", params: params }, function (response) {
-        // Must check lastError first to suppress the console error
-        const hasError = !!chrome.runtime.lastError;
-        handleResponse(response, "Trial Balance populated successfully!", 'populate', hasError);
+      browser.tabs.sendMessage(tab.id, { action: "populateTB", params: params }).then(function (response) {
+        handleResponse(response, "Trial Balance populated successfully!", 'populate');
+      }).catch(function (error) {
+        setLoadingState(false);
+        showContentError("Could not connect to the page. Please refresh the page and try again.");
       });
+    }).catch(function (error) {
+      setLoadingState(false);
+      showContentError("Could not access the current tab. Please try again.");
     });
   });
 
@@ -277,13 +272,17 @@ window.onload = function () {
     setLoadingState(true);
     showContentError('', false); // Clear any previous errors
 
-    chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
+    browser.tabs.query({ active: true, currentWindow: true }).then(function (tabs) {
       const tab = tabs[0];
-      chrome.tabs.sendMessage(tab.id, { action: "clearTB" }, function (response) {
-        // Must check lastError first to suppress the console error
-        const hasError = !!chrome.runtime.lastError;
-        handleResponse(response, "Trial Balance cleared successfully!", 'clear', hasError);
+      browser.tabs.sendMessage(tab.id, { action: "clearTB" }).then(function (response) {
+        handleResponse(response, "Trial Balance cleared successfully!", 'clear');
+      }).catch(function (error) {
+        setLoadingState(false);
+        showContentError("Could not connect to the page. Please refresh the page and try again.");
       });
+    }).catch(function (error) {
+      setLoadingState(false);
+      showContentError("Could not access the current tab. Please try again.");
     });
   });
 
