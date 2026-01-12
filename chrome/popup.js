@@ -199,6 +199,19 @@ window.onload = function () {
     }
   }
 
+  async function ensureContentScriptLoaded(tabId) {
+    try {
+      // Try to inject the content script
+      await chrome.scripting.executeScript({
+        target: { tabId: tabId },
+        files: ['content.js']
+      });
+    } catch (error) {
+      // Script may already be injected or page doesn't allow injection
+      // This is acceptable - the message will fail if script isn't available
+    }
+  }
+
   function showToast(message, type = 'success', duration = 2000) {
     const toast = document.getElementById('toast');
     const toastMessage = document.getElementById('toastMessage');
@@ -256,11 +269,11 @@ window.onload = function () {
     }
   }
 
-  btnPopTB.addEventListener('click', function () {
+  btnPopTB.addEventListener('click', async function () {
     setLoadingState(true);
     showContentError('', false); // Clear any previous errors
 
-    chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
+    chrome.tabs.query({ active: true, currentWindow: true }, async function (tabs) {
       const tab = tabs[0];
       const postingType = document.querySelector('input[name="postingType"]:checked').value,
         includeBF = document.getElementById("chkIncludeBF").checked,
@@ -270,6 +283,9 @@ window.onload = function () {
 
       const params = { "postingType": postingType, "includeBF": includeBF, "minValue": minValue, "maxValue": maxValue, "density": density };
 
+      // Inject content script before sending message
+      await ensureContentScriptLoaded(tab.id);
+
       chrome.tabs.sendMessage(tab.id, { action: "populateTB", params: params }, function (response) {
         // Must check lastError first to suppress the console error
         const hasError = !!chrome.runtime.lastError;
@@ -278,12 +294,16 @@ window.onload = function () {
     });
   });
 
-  btnClearTB.addEventListener('click', function () {
+  btnClearTB.addEventListener('click', async function () {
     setLoadingState(true);
     showContentError('', false); // Clear any previous errors
 
-    chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
+    chrome.tabs.query({ active: true, currentWindow: true }, async function (tabs) {
       const tab = tabs[0];
+      
+      // Inject content script before sending message
+      await ensureContentScriptLoaded(tab.id);
+      
       chrome.tabs.sendMessage(tab.id, { action: "clearTB" }, function (response) {
         // Must check lastError first to suppress the console error
         const hasError = !!chrome.runtime.lastError;

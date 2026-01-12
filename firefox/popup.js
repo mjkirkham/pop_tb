@@ -196,6 +196,19 @@ window.onload = function () {
     }
   }
 
+  async function ensureContentScriptLoaded(tabId) {
+    try {
+      // Try to inject the content script
+      await browser.scripting.executeScript({
+        target: { tabId: tabId },
+        files: ['content.js']
+      });
+    } catch (error) {
+      // Script may already be injected or page doesn't allow injection
+      // This is acceptable - the message will fail if script isn't available
+    }
+  }
+
   function showToast(message, type = 'success', duration = 2000) {
     const toast = document.getElementById('toast');
     const toastMessage = document.getElementById('toastMessage');
@@ -247,11 +260,12 @@ window.onload = function () {
     }
   }
 
-  btnPopTB.addEventListener('click', function () {
+  btnPopTB.addEventListener('click', async function () {
     setLoadingState(true);
     showContentError('', false); // Clear any previous errors
 
-    browser.tabs.query({ active: true, currentWindow: true }).then(function (tabs) {
+    try {
+      const tabs = await browser.tabs.query({ active: true, currentWindow: true });
       const tab = tabs[0];
       const postingType = document.querySelector('input[name="postingType"]:checked').value,
         includeBF = document.getElementById("chkIncludeBF").checked,
@@ -261,34 +275,34 @@ window.onload = function () {
 
       const params = { "postingType": postingType, "includeBF": includeBF, "minValue": minValue, "maxValue": maxValue, "density": density };
 
-      browser.tabs.sendMessage(tab.id, { action: "populateTB", params: params }).then(function (response) {
-        handleResponse(response, "Trial Balance populated successfully!", 'populate');
-      }).catch(function (error) {
-        setLoadingState(false);
-        showContentError("Could not connect to the page. Please refresh the page and try again.");
-      });
-    }).catch(function (error) {
+      // Inject content script before sending message
+      await ensureContentScriptLoaded(tab.id);
+
+      const response = await browser.tabs.sendMessage(tab.id, { action: "populateTB", params: params });
+      handleResponse(response, "Trial Balance populated successfully!", 'populate');
+    } catch (error) {
       setLoadingState(false);
-      showContentError("Could not access the current tab. Please try again.");
-    });
+      showContentError("Could not connect to the page. Please refresh the page and try again.");
+    }
   });
 
-  btnClearTB.addEventListener('click', function () {
+  btnClearTB.addEventListener('click', async function () {
     setLoadingState(true);
     showContentError('', false); // Clear any previous errors
 
-    browser.tabs.query({ active: true, currentWindow: true }).then(function (tabs) {
+    try {
+      const tabs = await browser.tabs.query({ active: true, currentWindow: true });
       const tab = tabs[0];
-      browser.tabs.sendMessage(tab.id, { action: "clearTB" }).then(function (response) {
-        handleResponse(response, "Trial Balance cleared successfully!", 'clear');
-      }).catch(function (error) {
-        setLoadingState(false);
-        showContentError("Could not connect to the page. Please refresh the page and try again.");
-      });
-    }).catch(function (error) {
+      
+      // Inject content script before sending message
+      await ensureContentScriptLoaded(tab.id);
+      
+      const response = await browser.tabs.sendMessage(tab.id, { action: "clearTB" });
+      handleResponse(response, "Trial Balance cleared successfully!", 'clear');
+    } catch (error) {
       setLoadingState(false);
-      showContentError("Could not access the current tab. Please try again.");
-    });
+      showContentError("Could not connect to the page. Please refresh the page and try again.");
+    }
   });
 
   form.addEventListener("blur", function (event) {
