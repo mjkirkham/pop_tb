@@ -2,7 +2,8 @@
   "env": {
     "browser": true,
     "es2021": true,
-    "webextensions": true
+    "webextensions": true,
+    "jest": true
   },
   "extends": "eslint:recommended",
   "parserOptions": {
