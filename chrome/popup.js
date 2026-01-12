@@ -185,7 +185,12 @@ window.onload = function () {
     const errorList = document.getElementById('errorList');
     
     if (isError) {
-      errorList.innerHTML = `<li>${message}</li>`;
+      // Clear existing errors
+      errorList.textContent = '';
+      // Create list item safely
+      const li = document.createElement('li');
+      li.textContent = message;
+      errorList.appendChild(li);
       errorPanel.classList.add('visible');
       // Focus the error panel for screen readers
       errorPanel.focus();
@@ -344,7 +349,14 @@ window.onload = function () {
 
     btnPopTB.disabled = msgArray.length > 0;
     const errorList = document.getElementById('errorList');
-    errorList.innerHTML = msgArray.map(msg => `<li>${msg}</li>`).join('');
+    // Clear existing errors safely
+    errorList.textContent = '';
+    // Add each error message safely
+    msgArray.forEach(msg => {
+      const li = document.createElement('li');
+      li.textContent = msg;
+      errorList.appendChild(li);
+    });
     errorPanel.classList.toggle('visible', msgArray.length > 0);
   }, true);
 
