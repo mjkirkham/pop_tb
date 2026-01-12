@@ -35,8 +35,40 @@ function populateTrialBalance(params) {
     postingType,
     density
   } = params;
-  const parsedDensity = parseInt(density);
-  const range = maxValue - minValue + 1;
+  
+  // Validate and parse inputs
+  const parsedDensity = parseInt(density, 10);
+  const minVal = parseInt(minValue, 10);
+  const maxVal = parseInt(maxValue, 10);
+  
+  // Validate parsed values
+  if (isNaN(parsedDensity) || parsedDensity < 1 || parsedDensity > 100) {
+    throw new Error("Density must be a number between 1 and 100.");
+  }
+  
+  if (isNaN(minVal) || minVal < 0) {
+    throw new Error("Minimum value must be a non-negative number.");
+  }
+  
+  if (isNaN(maxVal) || maxVal < 1) {
+    throw new Error("Maximum value must be a positive number.");
+  }
+  
+  if (maxVal < minVal) {
+    throw new Error("Maximum value cannot be less than minimum value.");
+  }
+  
+  if (maxVal > 9999999 || minVal > 9999999) {
+    throw new Error("Values cannot exceed 9,999,999.");
+  }
+  
+  // Validate posting type
+  const validPostingTypes = ['both', 'creditOnly', 'debitOnly'];
+  if (!validPostingTypes.includes(postingType)) {
+    throw new Error("Invalid posting type specified.");
+  }
+  
+  const range = maxVal - minVal + 1;
   const event = new Event('change', { 'bubbles': true });
 
   let total = 0;
@@ -65,7 +97,7 @@ function populateTrialBalance(params) {
   let populatedCount = 0;
   inputRows.forEach(inputRow => {
     const postTo = creditOrDebit(postingType);
-    const value = Math.floor(Math.random() * range) + parseInt(minValue);
+    const value = Math.floor(Math.random() * range) + minVal;
     const inputField = inputRow.querySelector(`input[name*=${postTo}]`);
     if (inputField) {
       inputField.value = value;

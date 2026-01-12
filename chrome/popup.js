@@ -314,15 +314,15 @@ window.onload = function () {
 
   form.addEventListener("blur", function (event) {
     if (event.target.type === 'number') {
-      const numericValue = parseInt(event.target.value);
+      const numericValue = parseInt(event.target.value, 10);
       event.target.value = (isNaN(numericValue)) ? event.target.defaultValue : numericValue;
     }
 
     const errorPanel = document.getElementById("errorPanel");
     const minValueInput = document.getElementById('numMinValue');
     const maxValueInput = document.getElementById('numMaxValue');
-    const minValue = parseInt(minValueInput.value);
-    const maxValue = parseInt(maxValueInput.value);
+    const minValue = parseInt(minValueInput.value, 10);
+    const maxValue = parseInt(maxValueInput.value, 10);
     const btnPopTB = document.getElementById("btn_pop_tb_run");
     const msgArray = [];
 
@@ -330,42 +330,56 @@ window.onload = function () {
     removeErrorState(minValueInput);
     removeErrorState(maxValueInput);
 
-    // Validation rules
-    const validationRules = [
-      {
-        condition: maxValue < minValue,
-        message: "Maximum value cannot be less than the minimum value.",
-        element: maxValueInput
-      },
-      {
-        condition: minValue > parseInt(minValueInput.max),
-        message: `Minimum value cannot be greater than ${minValueInput.max}.`,
-        element: minValueInput
-      },
-      {
-        condition: minValue < parseInt(minValueInput.min),
-        message: `Minimum value cannot be less than ${minValueInput.min}.`,
-        element: minValueInput
-      },
-      {
-        condition: maxValue > parseInt(maxValueInput.max),
-        message: `Maximum value cannot be greater than ${maxValueInput.max}.`,
-        element: maxValueInput
-      },
-      {
-        condition: maxValue < parseInt(maxValueInput.min),
-        message: `Maximum value cannot be less than ${maxValueInput.min}.`,
-        element: maxValueInput
-      }
-    ];
+    // Check for NaN values first
+    if (isNaN(minValue)) {
+      msgArray.push("Minimum value must be a valid number.");
+      addErrorState(minValueInput);
+    }
+    
+    if (isNaN(maxValue)) {
+      msgArray.push("Maximum value must be a valid number.");
+      addErrorState(maxValueInput);
+    }
+    
+    // Only proceed with other validations if values are numbers
+    if (!isNaN(minValue) && !isNaN(maxValue)) {
+      // Validation rules
+      const validationRules = [
+        {
+          condition: maxValue < minValue,
+          message: "Maximum value cannot be less than the minimum value.",
+          element: maxValueInput
+        },
+        {
+          condition: minValue > parseInt(minValueInput.max, 10),
+          message: `Minimum value cannot be greater than ${minValueInput.max}.`,
+          element: minValueInput
+        },
+        {
+          condition: minValue < parseInt(minValueInput.min, 10),
+          message: `Minimum value cannot be less than ${minValueInput.min}.`,
+          element: minValueInput
+        },
+        {
+          condition: maxValue > parseInt(maxValueInput.max, 10),
+          message: `Maximum value cannot be greater than ${maxValueInput.max}.`,
+          element: maxValueInput
+        },
+        {
+          condition: maxValue < parseInt(maxValueInput.min, 10),
+          message: `Maximum value cannot be less than ${maxValueInput.min}.`,
+          element: maxValueInput
+        }
+      ];
 
-    // Validate the form
-    validationRules.forEach(rule => {
-      if (rule.condition) {
-        msgArray.push(rule.message);
-        addErrorState(rule.element);
-      }
-    });
+      // Validate the form
+      validationRules.forEach(rule => {
+        if (rule.condition) {
+          msgArray.push(rule.message);
+          addErrorState(rule.element);
+        }
+      });
+    }
 
     btnPopTB.disabled = msgArray.length > 0;
     const errorList = document.getElementById('errorList');
