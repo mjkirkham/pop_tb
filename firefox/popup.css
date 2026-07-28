@@ -368,7 +368,7 @@ body {
 
 .help-tooltip {
   position: absolute;
-  bottom: calc(100% + 8px);
+  top: calc(100% + 8px);
   left: 50%;
   transform: translateX(-50%);
   background: var(--color-tooltip-bg);
@@ -379,7 +379,8 @@ body {
   letter-spacing: normal;
   padding: 10px 12px;
   border-radius: 8px;
-  width: 220px;
+  width: 280px;
+  max-width: min(280px, calc(100vw - 32px));
   line-height: 1.5;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
   opacity: 0;
@@ -392,11 +393,11 @@ body {
 .help-tooltip::after {
   content: '';
   position: absolute;
-  top: 100%;
+  bottom: 100%;
   left: 50%;
   transform: translateX(-50%);
   border: 6px solid transparent;
-  border-top-color: var(--color-tooltip-bg);
+  border-bottom-color: var(--color-tooltip-bg);
 }
 
 .help-icon:hover .help-tooltip,

@@ -84,6 +84,7 @@ window.onload = function () {
   const defaultPrefs = {
     postingType: 'both',
     includeBF: false,
+    codeFilter2026: true,
     minValue: '1',
     maxValue: '9999',
     density: '100'
@@ -107,6 +108,7 @@ window.onload = function () {
 
     // Apply include BF
     document.getElementById("chkIncludeBF").checked = prefs.includeBF;
+    document.getElementById("chkCodeFilter2026").checked = prefs.codeFilter2026 !== false;
 
     // Apply min/max values
     document.getElementById("numMinValue").value = prefs.minValue;
@@ -124,6 +126,7 @@ window.onload = function () {
     const prefs = {
       postingType: document.querySelector('input[name="postingType"]:checked').value,
       includeBF: document.getElementById("chkIncludeBF").checked,
+      codeFilter2026: document.getElementById("chkCodeFilter2026").checked,
       minValue: document.getElementById("numMinValue").value,
       maxValue: document.getElementById("numMaxValue").value,
       density: document.getElementById("rngDensity").value
@@ -259,11 +262,19 @@ window.onload = function () {
       const tab = tabs[0];
       const postingType = document.querySelector('input[name="postingType"]:checked').value,
         includeBF = document.getElementById("chkIncludeBF").checked,
+        codeFilter2026 = document.getElementById("chkCodeFilter2026").checked,
         minValue = document.getElementById("numMinValue").value,
         maxValue = document.getElementById("numMaxValue").value,
         density = document.getElementById("rngDensity").value;
 
-      const params = { "postingType": postingType, "includeBF": includeBF, "minValue": minValue, "maxValue": maxValue, "density": density };
+      const params = {
+        postingType: postingType,
+        includeBF: includeBF,
+        codeFilter2026: codeFilter2026,
+        minValue: minValue,
+        maxValue: maxValue,
+        density: density
+      };
 
       chrome.tabs.sendMessage(tab.id, { action: "populateTB", params: params }, function (response) {
         // Must check lastError first to suppress the console error

@@ -66,13 +66,20 @@
           <h3 class="card-title" id="optionsTitle">
             Options
             <span class="help-icon" tabindex="0" role="button" aria-label="Help: Additional settings for populating the trial balance">
-              <span class="help-tooltip">Brought forward accounts are opening balances from previous periods. Enable to include them in population.</span>
+              <span class="help-tooltip">Brought forward accounts are opening balances from previous periods. Use the 2026 onwards toggle to choose which nominal code set applies.</span>
             </span>
           </h3>
           <div class="toggle-wrapper">
             <span class="toggle-label" id="includeBFLabel">Include brought forward accounts</span>
             <label class="toggle-switch">
               <input type="checkbox" id="chkIncludeBF" name="includeBF" role="switch" aria-labelledby="includeBFLabel">
+              <span class="toggle-slider" aria-hidden="true"></span>
+            </label>
+          </div>
+          <div class="toggle-wrapper">
+            <span class="toggle-label" id="codeFilter2026Label">Use 2026 onwards codes</span>
+            <label class="toggle-switch">
+              <input type="checkbox" id="chkCodeFilter2026" name="codeFilter2026" role="switch" aria-labelledby="codeFilter2026Label">
               <span class="toggle-slider" aria-hidden="true"></span>
             </label>
           </div>

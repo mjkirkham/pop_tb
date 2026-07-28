@@ -32,6 +32,7 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
 function populateTrialBalance(params) {
   const {
     includeBF,
+    codeFilter2026,
     minValue,
     maxValue,
     postingType,
@@ -53,9 +54,11 @@ function populateTrialBalance(params) {
   if (!includeBF) {
     inputRows = inputRows.filter(checkNotBF);
   }
+
+  inputRows = inputRows.filter((inputRow) => checkYearSpecificCodeFilter(inputRow, codeFilter2026));
   
   if (inputRows.length === 0) {
-    throw new Error("No eligible rows to populate after filtering. Try enabling 'Include brought forward accounts'.");
+    throw new Error("No eligible rows to populate after filtering. Try enabling brought forward accounts or switching the 2026 onwards setting.");
   }
 
   if (parsedDensity < 100) {
@@ -136,6 +139,51 @@ function checkNotBF(inputRow) {
 
   // Check if the account name contains any of the excluded terms
   return !excludedTerms.test(account_name);
+}
+
+const POST_2026_CODES = new Set(['1040', '1113', '2241', '2267', '2268', '2641', '2667', '7704', '7705', '7706', '7907']);
+const PRE_2026_CODES = new Set(['1170', '2240', '2640', '7703', '7904', '7906']);
+
+function checkYearSpecificCodeFilter(inputRow, use2026OnwardsCodes) {
+  const accountCode = getAccountCodeFromRow(inputRow);
+  if (!accountCode) {
+    return true;
+  }
+
+  if (use2026OnwardsCodes) {
+    return !PRE_2026_CODES.has(accountCode);
+  }
+
+  return !POST_2026_CODES.has(accountCode);
+}
+
+function getAccountCodeFromRow(inputRow) {
+  const codeSelectors = [
+    '.nominal_account_code',
+    '[class*="nominal_account_code"]',
+    '[class*="account_code"]',
+    '[data-account-code]',
+    '[data-nominal-code]'
+  ];
+
+  for (const selector of codeSelectors) {
+    const codeElement = inputRow.querySelector(selector);
+    const code = extractFourDigitCode(codeElement && (codeElement.innerText || codeElement.textContent || codeElement.getAttribute('data-account-code') || codeElement.getAttribute('data-nominal-code')));
+    if (code) {
+      return code;
+    }
+  }
+
+  return extractFourDigitCode(inputRow.innerText || inputRow.textContent);
+}
+
+function extractFourDigitCode(value) {
+  if (!value) {
+    return null;
+  }
+
+  const match = value.match(/\b([0-9]{4})\b/);
+  return match ? match[1] : null;
 }
 
 function shuffleArray(array) {
