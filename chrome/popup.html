@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <title>Pop TB</title>
     <link rel="stylesheet" type="text/css" href="popup.css">
+    <script type="text/javascript" src="accounting-data.js" defer></script>
+    <script type="text/javascript" src="accounting-code-names.js" defer></script>
     <script type="text/javascript" src="popup.js" defer></script>
   </head>
 
@@ -61,18 +63,66 @@
           </div>
         </div>
 
+        <div class="card card-wide" role="group" aria-labelledby="postingSourceTitle">
+          <h3 class="card-title" id="postingSourceTitle">
+            Posting Source
+            <span class="help-icon" tabindex="0" role="button" aria-label="Help: Choose whether to use random postings, a category, or a starter entry set">
+              <span class="help-tooltip">Use starter sets for simple double entries, choose a category to restrict random postings to matching codes, or keep the original full random mode.</span>
+            </span>
+          </h3>
+          <div class="input-row input-row-compact" id="frameworkRow">
+            <label class="input-label" for="selFramework">Account type</label>
+            <select class="input-field select-field" id="selFramework" name="frameworkId"></select>
+          </div>
+          <div class="input-row input-row-compact" id="postingModeRow">
+            <label class="input-label" for="selPostingMode">Population mode</label>
+            <select class="input-field select-field" id="selPostingMode" name="postingMode">
+              <option value="random">Random eligible accounts</option>
+              <option value="category">Random within selected category</option>
+              <option value="preset">Sample account set</option>
+            </select>
+          </div>
+          <div class="input-row input-row-compact" id="categoryRow">
+            <label class="input-label" for="selCategory">Category</label>
+            <select class="input-field select-field" id="selCategory" name="categoryId"></select>
+          </div>
+          <div class="input-row input-row-compact" id="categoryRangeRow">
+            <label class="input-label" for="selCategoryFromCode">Category range</label>
+            <div class="range-select-group">
+              <select class="input-field select-field range-select" id="selCategoryFromCode" name="categoryFromCode"></select>
+              <select class="input-field select-field range-select" id="selCategoryToCode" name="categoryToCode"></select>
+            </div>
+          </div>
+          <div class="input-row input-row-compact" id="presetRow">
+            <label class="input-label" for="selPreset">Sample set</label>
+            <select class="input-field select-field" id="selPreset" name="presetId"></select>
+          </div>
+          <div class="input-row input-row-compact" id="balanceRow">
+            <label class="input-label" for="selBalanceAccount">Balancing entry</label>
+            <select class="input-field select-field" id="selBalanceAccount" name="balanceAccount"></select>
+          </div>
+          <p class="card-note" id="postingSourceNote">Sample sets post to several nominal codes and are balanced by design. Category and random modes can optionally auto-balance to bank or suspense.</p>
+        </div>
+
         <!-- Options Card -->
         <div class="card" role="group" aria-labelledby="optionsTitle">
           <h3 class="card-title" id="optionsTitle">
             Options
             <span class="help-icon" tabindex="0" role="button" aria-label="Help: Additional settings for populating the trial balance">
-              <span class="help-tooltip">Brought forward accounts are opening balances from previous periods. Enable to include them in population.</span>
+              <span class="help-tooltip">Brought forward accounts are opening balances from previous periods. Use the 2026 onwards toggle to choose which nominal code set applies.</span>
             </span>
           </h3>
           <div class="toggle-wrapper">
             <span class="toggle-label" id="includeBFLabel">Include brought forward accounts</span>
             <label class="toggle-switch">
               <input type="checkbox" id="chkIncludeBF" name="includeBF" role="switch" aria-labelledby="includeBFLabel">
+              <span class="toggle-slider" aria-hidden="true"></span>
+            </label>
+          </div>
+          <div class="toggle-wrapper">
+            <span class="toggle-label" id="codeFilter2026Label">Use 2026 onwards codes</span>
+            <label class="toggle-switch">
+              <input type="checkbox" id="chkCodeFilter2026" name="codeFilter2026" role="switch" aria-labelledby="codeFilter2026Label">
               <span class="toggle-slider" aria-hidden="true"></span>
             </label>
           </div>

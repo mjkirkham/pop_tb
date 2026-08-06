@@ -3,8 +3,8 @@
 
   "name": "Pop TB",
   "description": "Fully populate an Initial or Comparative Trial Balance in Final Accounts Online.",
-  "version": "1.1",
-  "author": "Charlie Billen, Mark Kirkham",
+  "version": "1.2",
+  "author": "Charlie Billen, Mark Kirkham, Dave Adkinson",
 
   "browser_specific_settings": {
     "gecko": {
@@ -36,6 +36,7 @@
         "<all_urls>"
       ],
       "js": [
+        "accounting-data.js",
         "content.js"
       ]
     }
